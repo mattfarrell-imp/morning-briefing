@@ -12,6 +12,8 @@ $project        = $config.devopsProject
 $repo           = $config.devopsRepo
 $teamName       = $config.teamName
 $teamReviewerId = $config.teamReviewerId
+$releaseKw      = $config.releaseKeywords -join ', '
+$releaseSearch  = $config.releaseKeywords -join ' OR '
 $workHours      = $config.workHoursPerDay
 $workMinutes    = [int]($workHours * 60)
 $webhookUrl     = $config.webhookUrl
@@ -49,7 +51,7 @@ This returns the reviewers array (with votes, hasDeclined, isContainer) and work
 There will be ~20 PRs. You MUST fetch details for ALL of them — do not skip or stop early.
 
 ### 1e. Check for rejections/declines FIRST (before work item filter)
-Scan ALL PRs from 1d. Any PR where a reviewer has vote=-10 (Rejected) OR hasDeclined=true goes into the **Needs Investigation** bucket immediately — these bypass the work item state filter entirely. Note the reason (e.g. "Rejected by Sam Eastburn", "Declined by Scarlett Ward").
+Scan ALL PRs from 1d. Any PR where a reviewer has vote=-10 (Rejected) OR hasDeclined=true goes into the **Needs Investigation** bucket immediately — these bypass the work item state filter entirely. Note the reason (e.g. "Rejected by [reviewer name]", "Declined by [reviewer name]").
 
 ### 1f. Work item state filter (for remaining PRs not in Investigation)
 Collect ALL unique work item IDs from the remaining PRs' workItemRefs.
@@ -85,11 +87,11 @@ Use the Microsoft 365 MCP tools. Apply the retry policy above to each call indiv
 - chat_message_search with query=*, afterDateTime='yesterday', limit=25
 
 ### 2b. Release Channels
-Monitor these Teams channels for release activity:
+Monitor these Teams channels for release activity using these keywords: ${releaseKw}
 - chat_message_search with query='release', afterDateTime='yesterday', limit=20
-- chat_message_search with query='finance', afterDateTime='yesterday', limit=20
+- chat_message_search with query='${releaseSearch}', afterDateTime='yesterday', limit=20
 - chat_message_search with query='deploy OR release OR environment', afterDateTime='yesterday', limit=20
-Extract any purchasing, finance, or platform release/deployment mentions.
+Extract any ${releaseKw} or release/deployment mentions.
 
 ## Step 3: Calculate Free Work Time
 ${userName} works ${workHours} hours (${workMinutes} minutes) per day:
@@ -108,7 +110,7 @@ Card sections:
 1. Header: Morning Briefing - {today's date DD MMMM YYYY}
 2. Today's Calendar: each meeting with time, title, duration
 3. Free Work Time: e.g. "4h 35m available (3 meetings, 30m buffers, 37m flex)"
-4. Releases: purchasing/finance/platform release activity from last 24h
+4. Releases: ${releaseKw} release activity from last 24h
 5. My PRs: PR ID, title, target branch
 6. PRs Needing Review: split into three sub-sections:
    a. "Needs My Review" — PRs assigned directly to me with no vote yet. Show PR ID, author, title.

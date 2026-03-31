@@ -6,8 +6,14 @@
 #>
 
 param(
-    [string]$WebhookUrl = "https://default60e9bcaaf4c1441b8d931bda37d909.0b.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/33f98280b86d4714b4993034faaa0921/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=qQPadNXrqrCY4_pibg3XoRNMTB65pr5A4kg6gC2AlZo"
+    [string]$WebhookUrl
 )
+
+if (-not $WebhookUrl) {
+    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $config = Get-Content "$scriptDir\appsettings.json" | ConvertFrom-Json
+    $WebhookUrl = $config.webhookUrl
+}
 
 function Send-AdaptiveCard {
     param([hashtable]$Card)

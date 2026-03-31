@@ -33,7 +33,7 @@ Follow the [Claude Code docs](https://docs.anthropic.com/en/docs/claude-code) to
 Claude Code needs two MCP servers. Add them to your Claude Code settings (`~/.claude/settings.json` or via the CLI):
 
 **Azure DevOps MCP** - provides PR lists, work items, reviewer votes.
-We're all in the `impsoftwareuk` org, so just generate a PAT with read access to Code and Work Items:
+Everyone in the `impsoftwareuk` org can use the same DevOps server config. Generate a PAT with read access to Code and Work Items:
 
 ```json
 {
@@ -76,7 +76,7 @@ This briefing posts an Adaptive Card to Teams via a Power Automate workflow. Her
 4. Add an action: **Microsoft Teams > Post adaptive card in a chat or channel**
    - Post as: Flow bot
    - Post in: Channel
-   - Team: select your team (e.g. "Purchasing Squad")
+   - Team: select your team (e.g. your squad name)
    - Channel: select or create a channel (e.g. "Morning Briefings")
 5. In the Adaptive Card field, use this expression to extract the card from the payload:
    ```
@@ -101,8 +101,9 @@ Copy `appsettings.template.json` to `appsettings.json` and fill in your details:
   "userName": "Your Name",
   "devopsProject": "ImpPlanner",
   "devopsRepo": "ImpPlanner",
-  "teamName": "Purchasing Squad",
-  "teamReviewerId": "vstfs:///Classification/TeamProject/f8031cff-1c25-4ba5-9fde-766c967e1457\\Purchasing Squad",
+  "teamName": "Your Squad Name",
+  "teamReviewerId": "your-team-reviewer-id",
+  "releaseKeywords": ["your-domain", "your-product-area"],
   "workHoursPerDay": 7.5,
   "webhookUrl": "YOUR_POWER_AUTOMATE_WEBHOOK_URL"
 }
@@ -115,10 +116,21 @@ Copy `appsettings.template.json` to `appsettings.json` and fill in your details:
 | `devopsRepo` | Leave as `ImpPlanner` |
 | `teamName` | Your team name in DevOps (e.g. `Purchasing Squad`, `Finance Squad`) |
 | `teamReviewerId` | Your team's reviewer identity (see "Finding your team reviewer ID" below) |
+| `releaseKeywords` | Keywords relevant to your team's domain, used to search Teams for release activity (see "Release keywords" below) |
 | `workHoursPerDay` | Your contracted hours (default 7.5) |
 | `webhookUrl` | Your Power Automate webhook URL from step 3 |
 
 **Finding your team reviewer ID:** Open any PR in Azure DevOps where your team is a required reviewer. In the URL bar, navigate to the PR API: `https://dev.azure.com/impsoftwareuk/ImpPlanner/_apis/git/repositories/ImpPlanner/pullRequests/{PR_ID}?api-version=7.0`. Look for the reviewer entry with `isContainer: true` — the `uniqueName` field is your `teamReviewerId`.
+
+**Release keywords:** The briefing searches Teams chats for release/deployment activity relevant to your team. Set `releaseKeywords` to terms that match your domain area. Examples:
+
+| Team | Keywords |
+|------|----------|
+| Purchasing Squad | `["purchasing", "finance", "platform"]` |
+| Finance Squad | `["finance", "tax", "ledger"]` |
+| Platform Squad | `["platform", "infrastructure", "devops"]` |
+
+These keywords are used to search Teams messages and label the Releases section of your briefing card.
 
 You do NOT need to edit `Run-MorningBriefing.ps1` — it reads everything from `appsettings.json`.
 
