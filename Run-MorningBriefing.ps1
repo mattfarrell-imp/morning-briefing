@@ -19,6 +19,10 @@ $webhookUrl     = $config.webhookUrl
 $prompt = @"
 You are ${userName}'s morning briefing agent. Gather data and post a summary to their Teams channel.
 
+IMPORTANT — execution order: Complete ALL of Step 1 (Azure DevOps) before starting Step 2 (Microsoft 365). This ensures DevOps data is always captured even if M365 is slow or unavailable.
+
+IMPORTANT — M365 retry policy: If ANY Microsoft 365 tool call fails (timeout, error, unavailable), wait 5 seconds and retry that specific call ONCE. If the retry also fails, record the failure and continue with remaining M365 calls — do not abandon the whole M365 step because one call failed.
+
 ## Step 1: Get Azure DevOps Data
 
 ### 1a. My PRs
@@ -72,13 +76,15 @@ From the PRs that survived 1f (plus Investigation PRs from 1e):
 - wit_my_work_items with project=${project}, type=assignedtome
 - For returned work item IDs, use wit_get_work_items_batch_by_ids to get titles, states, iteration paths
 
-## Step 2: Get Microsoft 365 Data
-Use the Microsoft 365 MCP tools:
+## Step 2: Get Microsoft 365 Data (after Step 1 is fully complete)
+Use the Microsoft 365 MCP tools. Apply the retry policy above to each call individually.
+
+### 2a. Core M365 data
+- outlook_calendar_search with query=*, afterDateTime='today', beforeDateTime='tomorrow', limit=20
 - outlook_email_search with folderName=Inbox, afterDateTime='yesterday', limit=20
 - chat_message_search with query=*, afterDateTime='yesterday', limit=25
-- outlook_calendar_search with query=*, afterDateTime='today', beforeDateTime='tomorrow', limit=20
 
-### Release Channels
+### 2b. Release Channels
 Monitor these Teams channels for release activity:
 - chat_message_search with query='release', afterDateTime='yesterday', limit=20
 - chat_message_search with query='finance', afterDateTime='yesterday', limit=20
